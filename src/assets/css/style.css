@@ -1,0 +1,23 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    min-height: 100%;
+    font-family: 'Work Sans', sans-serif;
+}
+
+body {
+    min-height: 100vh;
+}
+
+#app {
+    background-color: rgba(192, 192, 192, 0.15);
+    min-height: inherit;
+}
+
+input::placeholder {
+    font-family: 'Work Sans', sans-serif;
+}
