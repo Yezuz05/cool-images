@@ -13,23 +13,10 @@
     <div class="images-box">
       <div class="box-header">Popular Images</div>
       <div class="images">
-        <div class="image-card">
+        <div :style="{backgroundImage: 'url('+image.urls.regular +')'}" class="image-card" v-for="image in images" :key="image.id">
           <div class="img-details">
-            <div class="downloads">
-              25 <img src="@/assets/cloud-computing.svg" alt="">
-            </div>
             <div class="likes">
-              25 <img src="@/assets/like.svg" alt="">
-            </div>
-          </div>
-        </div>
-        <div class="image-card">
-          <div class="img-details">
-            <div class="downloads">
-              25 <img src="@/assets/cloud-computing.svg" alt="">
-            </div>
-            <div class="likes">
-              25 <img src="@/assets/like.svg" alt="">
+              {{image.likes}} <img src="@/assets/like.svg" alt="">
             </div>
           </div>
         </div>
@@ -41,11 +28,33 @@
 <script>
 // @ is an alias to /src
 // import HelloWorld from "@/components/HelloWorld.vue";
+import {HTTP} from '../http.js';
 
 export default {
   name: "home",
-  components: {
-    // HelloWorld
+  components: {},
+  data() {
+    return {
+      images: null
+    }
+  },
+  created() {
+    HTTP.get('/photos', {
+      params:{
+        order_by: 'popular'
+      }
+    })
+      .then((res) => {
+        this.images = res.data;
+      })
+  },
+  mounted() {
+    document.addEventListener('scroll', this.handleScroll)
+  },
+  methods: {
+    handleScroll() {
+      // console.log(window.scr);
+    }
   }
 };
 </script>
@@ -121,7 +130,8 @@ export default {
     height: 200px;
     border-radius: 5px;
     padding: 10px;
-    /* background-image: ; */
+    background-position: center;
+    background-size: cover;
     display: grid;
   }
 
@@ -134,4 +144,12 @@ export default {
   .image-card img {
     width: 20px;
   }
+
+  div.likes {
+    color: #fff;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-column-gap: 5px;
+  }
+
 </style>
