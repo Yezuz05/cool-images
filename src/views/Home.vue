@@ -49,11 +49,17 @@ export default {
       })
   },
   mounted() {
-    document.addEventListener('scroll', this.handleScroll)
+    this.scroll();
   },
   methods: {
-    handleScroll() {
-      // console.log(window.scr);
+    scroll() {
+      window.onscroll = () => {
+      let bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
+
+      if (bottomOfWindow) {
+        console.log('Isale window lawa');
+      }
+    };
     }
   }
 };
