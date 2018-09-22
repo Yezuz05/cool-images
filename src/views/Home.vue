@@ -43,6 +43,7 @@
                 </div>
               </div>
             </div>
+            <div v-if="loadingImages" class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
           </div>
         </div>
       </div>
@@ -60,7 +61,7 @@ export default {
   components: {},
   data() {
     return {
-      images: null,
+      images: [],
       photo_tabs: [
         {
           title: 'Latest',
@@ -73,7 +74,9 @@ export default {
           active: false
         }
       ],
-      active_tab: null
+      active_tab: null,
+      page: 1,
+      loadingImages: false
     }
   },
   created() {
@@ -92,18 +95,23 @@ export default {
       let bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
 
       if (bottomOfWindow) {
-        console.log('Isale window lawa');
+        this.page++;
+        this.getPhotos(this.active_tab);
       }
     };
     },
     getPhotos(order_by) {
+      this.loadingImages = true;
       HTTP.get('/photos', {
         params:{
-          order_by
+          order_by,
+          page: this.page,
+          per_page: 15
         }
       })
       .then((res) => {
-        this.images = res.data;
+        this.images.push(...res.data);
+        this.loadingImages = false;
       })
     },
     changeTab(tab) {
@@ -113,7 +121,10 @@ export default {
       this.photo_tabs.map(tab=>{
           tab.active = this.$route.query.tab === tab.value;
       });
-      this.getPhotos(this.$route.query.tab);
+      this.active_tab = this.$route.query.tab;
+      this.page = 1;
+      this.images = [];
+      this.getPhotos(this.active_tab);
     }
   },
   watch: {
