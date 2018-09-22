@@ -1,27 +1,52 @@
 <template>
   <div class="home">
-    <!-- <HelloWorld msg="Welcome to Your Vue.js App"/> -->
-    <div class="logo">
-      <img src="@/assets/main-logo.png" alt="" srcset="">
-    </div>
-    <div class="search-box">
-      <div class="input-box">
-        <i class="fas fa-2x fa-search"></i>
-        <input type="text" name="" class="img-search" id="" placeholder="search for images">
+    <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
+      <div class="navbar-brand">
+        <a class="navbar-item" href="#">
+          <img src="@/assets/pictures.svg" alt="Cool Images: Free image portal" width="50" height="28">
+          <span>Cool Images</span>
+        </a>
+        <!-- <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+        </a> -->
       </div>
-    </div>
-    <div class="images-box">
-      <div class="box-header">Popular Images</div>
-      <div class="images">
-        <div :style="{backgroundImage: 'url('+image.urls.regular +')'}" class="image-card" v-for="image in images" :key="image.id">
-          <div class="img-details">
-            <div class="likes">
-              {{image.likes}} <img src="@/assets/like.svg" alt="">
+      <form>
+        <div class="control has-icons-left">
+          <input class="input is-rounded" placeholder="Search">
+          <span class="icon is-small is-left">
+            <i class="fas fa-search"></i>
+          </span>
+        </div>
+      </form>
+    </nav>
+    <section class="hero">
+      <div class="hero-body">
+        <div class="container">
+          <div class="images-box">
+            <div class="box-header">
+              <div class="tabs is-medium">
+                <ul>
+                    <li @click="changeTab(tab)" :class="tab.active ? 'is-active' : ''" v-for="tab in photo_tabs" :key="tab.value">
+                      <a>{{ tab.title }}</a>
+                    </li>
+                </ul>
+              </div>
+            </div>
+            <div class="images">
+              <div :style="{backgroundImage: 'url('+image.urls.regular +')'}" class="image-card" v-for="image in images" :key="image.id">
+                <div class="img-details">
+                  <div class="likes">
+                    {{image.likes}} <img src="@/assets/like.svg" alt="">
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
@@ -35,20 +60,30 @@ export default {
   components: {},
   data() {
     return {
-      images: null
+      images: null,
+      photo_tabs: [
+        {
+          title: 'Latest',
+          value: 'latest',
+          active: true
+        },
+        {
+          title: 'Popular',
+          value: 'popular',
+          active: false
+        }
+      ],
+      active_tab: null
     }
   },
   created() {
-    HTTP.get('/photos', {
-      params:{
-        order_by: 'popular'
-      }
-    })
-      .then((res) => {
-        this.images = res.data;
-      })
   },
   mounted() {
+    if (this.$route.query.tab) {
+      this.setTab();
+    } else {
+      this.$router.push({ path: '/', query: { tab: 'latest' }});
+    };
     this.scroll();
   },
   methods: {
@@ -60,7 +95,31 @@ export default {
         console.log('Isale window lawa');
       }
     };
+    },
+    getPhotos(order_by) {
+      HTTP.get('/photos', {
+        params:{
+          order_by
+        }
+      })
+      .then((res) => {
+        this.images = res.data;
+      })
+    },
+    changeTab(tab) {
+      this.$router.push({ path: '/', query: { tab: tab.value }});
+    },
+    setTab() {
+      this.photo_tabs.map(tab=>{
+          tab.active = this.$route.query.tab === tab.value;
+      });
+      this.getPhotos(this.$route.query.tab);
     }
+  },
+  watch: {
+  '$route' (to, from) {
+    this.setTab();
+  }
   }
 };
 </script>
@@ -68,48 +127,30 @@ export default {
 <style scoped>
   div.home {
     width: 100%;
-    display: grid;
-    grid-template-rows: .1fr .4fr auto;
-    grid-row-gap: 20px;
-    padding: 20 20px;
-    justify-items: center;
   }
 
-  .logo > img {
-    width: 250px;
+  nav.navbar {
+    width: 100%;
+    padding: 5px 0;
+  }
+
+  a.navbar-item > span {
+    font-weight: 600;
+  }
+
+  nav > form {
+    align-self: center;
+    flex-grow: 0.5;
+    margin: 0 10px;
+  }
+  
+  section.hero {
+    margin-top: 4.5rem;
   }
 
   div.search-box {
     width: 100%;
     padding: 30px;
-  }
-
-  div.input-box {
-    display: grid;
-    grid-template-columns: 50px auto;
-    height: 50px;
-    width: 100%;
-    border-radius: 4px;
-    border: 1px solid #acacac;
-    background-color: #fff;
-  }
-
-  .input-box .fas {
-    place-self: center;
-    color: #acacac;
-  }
-
-  .search-box input {
-    border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
-    border-left: 1px solid #acacac;
-    font-size: 24px;
-    text-indent: 5px;
-    border: none;
-  }
-
-  .search-box input:focus {
-    outline: none;  
   }
 
   div.images-box {
@@ -157,5 +198,4 @@ export default {
     grid-template-columns: 1fr 1fr;
     grid-column-gap: 5px;
   }
-
 </style>
