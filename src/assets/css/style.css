@@ -101,4 +101,7 @@ input::placeholder {
       opacity: 0;
     }
   }
-  
+
+  .hero-body { 
+    padding-top: 1rem;
+  }

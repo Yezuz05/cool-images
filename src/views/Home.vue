@@ -14,7 +14,7 @@
       </div>
       <form>
         <div class="control has-icons-left">
-          <input class="input is-rounded" placeholder="Search">
+          <input class="input is-rounded" placeholder="Search" v-model="searchTerm">
           <span class="icon is-small is-left">
             <i class="fas fa-search"></i>
           </span>
@@ -55,6 +55,7 @@
 // @ is an alias to /src
 // import HelloWorld from "@/components/HelloWorld.vue";
 import {HTTP} from '../http.js';
+import _ from 'lodash';
 
 export default {
   name: "home",
@@ -76,7 +77,9 @@ export default {
       ],
       active_tab: null,
       page: 1,
-      loadingImages: false
+      loadingImages: false,
+      searchTerm: null,
+      isSearching: false
     }
   },
   created() {
@@ -87,19 +90,18 @@ export default {
     } else {
       this.$router.push({ path: '/', query: { tab: 'latest' }});
     };
-    this.scroll();
+    window.onscroll = () => {
+      this.scroll();
+    };
   },
   methods: {
-    scroll() {
-      window.onscroll = () => {
-      let bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
-
+    scroll: _.debounce(function() {
+      const bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
       if (bottomOfWindow) {
         this.page++;
         this.getPhotos(this.active_tab);
       }
-    };
-    },
+    }, 600),
     getPhotos(order_by) {
       this.loadingImages = true;
       HTTP.get('/photos', {
@@ -208,5 +210,9 @@ export default {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-column-gap: 5px;
+  }
+
+  .tabs a:hover {
+    color: #acacac;
   }
 </style>
