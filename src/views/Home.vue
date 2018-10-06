@@ -212,7 +212,7 @@ export default {
     grid-column-gap: 5px;
   }
 
-  .tabs a:hover {
+  .tabs li:not(.is-active) a:hover {
     color: #acacac;
   }
 </style>
