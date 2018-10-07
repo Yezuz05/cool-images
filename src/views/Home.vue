@@ -13,12 +13,13 @@
         </a> -->
       </div>
       <form>
-        <div class="control has-icons-left">
-          <input class="input is-rounded" placeholder="Search" v-model="searchTerm">
+        <div class="control has-icons-left" :class="{'is-loading':isSearching }">
+          <input class="input is-rounded" @keyup="searchBarType($event)" placeholder="Search" v-model="searchTerm">
           <span class="icon is-small is-left">
             <i class="fas fa-search"></i>
           </span>
         </div>
+
       </form>
     </nav>
     <section class="hero">
@@ -26,10 +27,22 @@
         <div class="container">
           <div class="images-box">
             <div class="box-header">
-              <div class="tabs is-medium">
+              <div v-if="!hasSearched" class="tabs is-medium">
                 <ul>
                     <li @click="changeTab(tab)" :class="tab.active ? 'is-active' : ''" v-for="tab in photo_tabs" :key="tab.value">
                       <a>{{ tab.title }}</a>
+                    </li>
+                </ul>
+              </div>
+              <div v-if="hasSearched" class="tabs is-medium search-tabs">
+                <ul>
+                    <li class="is-active">
+                      <a>Search results for "{{ searchTerm }}"</a>
+                    </li>
+                    <li>
+                      <div class="clear" @click="clearSearch()">
+                        <i class="fas fa-times"></i> Clear search
+                      </div>
                     </li>
                 </ul>
               </div>
@@ -56,6 +69,7 @@
 // import HelloWorld from "@/components/HelloWorld.vue";
 import {HTTP} from '../http.js';
 import _ from 'lodash';
+// import Form from '../form.js';
 
 export default {
   name: "home",
@@ -79,7 +93,11 @@ export default {
       page: 1,
       loadingImages: false,
       searchTerm: null,
-      isSearching: false
+      isSearching: false,
+      hasSearched: false,
+      searchForm: new Form({
+        name: []
+      })
     }
   },
   created() {
@@ -99,7 +117,11 @@ export default {
       const bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
       if (bottomOfWindow) {
         this.page++;
-        this.getPhotos(this.active_tab);
+        if (this.hasSearched) {
+          this.search();
+        } else {
+          this.getPhotos(this.active_tab);
+        }
       }
     }, 600),
     getPhotos(order_by) {
@@ -127,6 +149,44 @@ export default {
       this.page = 1;
       this.images = [];
       this.getPhotos(this.active_tab);
+    },
+    searchBarType: _.debounce(function(e) {
+      console.log(e.which);
+      if (e.key.length !== 1 && e.key !== 'Backspace') {
+        return;
+      }
+      this.search();
+      this.images = [];
+      window.scrollTo(0, 0);
+    }, 700),
+    search() {
+      this.isSearching = true;
+      this.loadingImages = true;
+      if (!this.hasSearched) {
+        this.images = [];
+        this.page = 1;
+        this.hasSearched = true;
+      }
+      HTTP.get('/search/photos', {
+        params: {
+          query: this.searchTerm,
+          page: this.page,
+          per_page: 15
+        }
+      })
+      .then((res) => {
+        this.images.push(...res.data.results);
+        this.isSearching = false;
+        this.loadingImages = false;
+      })
+    },
+    clearSearch() {
+      this.isSearching = false;
+      this.loadingImages = false;
+      this.images = [];
+      this.hasSearched = false;
+      this.searchTerm = null;
+      this.setTab();
     }
   },
   watch: {
@@ -214,5 +274,15 @@ export default {
 
   .tabs li:not(.is-active) a:hover {
     color: #acacac;
+  }
+
+  /* .search-tabs li:not(.is-active) {
+    align-self: baseline;
+  } */
+
+  div.clear {
+    color: red;
+    font-size: 10px;
+    cursor: pointer;
   }
 </style>
