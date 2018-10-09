@@ -94,10 +94,7 @@ export default {
       loadingImages: false,
       searchTerm: null,
       isSearching: false,
-      hasSearched: false,
-      searchForm: new Form({
-        name: []
-      })
+      hasSearched: false
     }
   },
   created() {
